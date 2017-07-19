@@ -1,5 +1,7 @@
 package net.memphis.cs.netlab.nacman;
 
+import edu.memphis.cs.netlab.nacapp.InterestHandler;
+import edu.memphis.cs.netlab.nacapp.NACNode;
 import net.named_data.jndn.*;
 import net.named_data.jndn.encoding.EncodingException;
 import net.named_data.jndn.encoding.der.DerDecodingException;
@@ -15,7 +17,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class App {
+
+public class ManagerApp {
 	NACNode node = new NACNode();
 	Face face = new Face();
 	final String prefix = "/local-home/NAC";
@@ -33,12 +36,18 @@ public class App {
 	Map<String, Schedule> scheduleStore = new HashMap<>();
 
 
-	public App() throws GroupManagerDb.Error, SecurityException {
+	public ManagerApp() throws GroupManagerDb.Error, SecurityException {
 		node.init(new Name(prefix));
 	}
 
-	interface InterestHandler extends OnInterestCallback {
-		String path();
+	private void registerPrefixes(Runnable onSuccess) {
+		InterestHandler[] handlers = new InterestHandler[]{
+			new OnRead(),
+			new OnAddIdentity(),
+			new OnIdentity(),
+			new OnGrant()
+		};
+		node.registerPrefixes(handlers, onSuccess);
 	}
 
 	class OnRead implements InterestHandler {
@@ -128,6 +137,11 @@ public class App {
 		public String path() {
 			return path;
 		}
+
+		@Override
+		public void onRegisterSuccess(Name name, long l) {
+
+		}
 	}
 
 	class OnIdentity implements InterestHandler {
@@ -154,6 +168,11 @@ public class App {
 		@Override
 		public String path() {
 			return path;
+		}
+
+		@Override
+		public void onRegisterSuccess(Name name, long l) {
+
 		}
 	}
 
@@ -197,6 +216,11 @@ public class App {
 		@Override
 		public String path() {
 			return path;
+		}
+
+		@Override
+		public void onRegisterSuccess(Name name, long l) {
+
 		}
 	}
 
@@ -277,47 +301,15 @@ public class App {
 		public String path() {
 			return path;
 		}
-	}
 
-	private void registerPrefixes(Runnable onSuccess) {
-		InterestHandler[] handlers = new InterestHandler[]{
-			new OnRead(),
-			new OnAddIdentity(),
-			new OnIdentity(),
-			new OnGrant()
-		};
+		@Override
+		public void onRegisterSuccess(Name name, long l) {
 
-		final int[] cnt = {0};
-		OnRegisterSuccess[] onRegSuc = {null};
-		Runnable doRegister = new Runnable() {
-			@Override
-			public void run() {
-				String thisPrefix = prefix + handlers[cnt[0]].path();
-				final OnInterestCallback handler = handlers[cnt[0]];
-				node.registerPrefix(thisPrefix, new OnInterestCallback() {
-					@Override
-					public void onInterest(Name name, Interest interest, Face face, long l, InterestFilter interestFilter) {
-						System.out.println("IN: " + interest.toUri());
-						handler.onInterest(name, interest, face, l, interestFilter);
-					}
-				}, onRegSuc[0]);
-			}
-		};
-		onRegSuc[0] = new OnRegisterSuccess() {
-			@Override
-			public void onRegisterSuccess(Name name, long l) {
-				if (++cnt[0] >= handlers.length) {
-					onSuccess.run();
-					return;
-				}
-				doRegister.run();
-			}
-		};
-		doRegister.run();
+		}
 	}
 
 	public static void main(String[] args) throws Throwable {
-		App a = new App();
+		ManagerApp a = new ManagerApp();
 
 		a.registerPrefixes(new Runnable() {
 			@Override

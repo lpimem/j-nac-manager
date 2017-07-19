@@ -16,3 +16,5 @@ include 'services:webservice'
 */
 
 rootProject.name = 'jmanager'
+include ':jndn-node'
+project(':jndn-node').projectDir = new File(settingsDir, '../jndn-node')

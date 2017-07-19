@@ -19,15 +19,15 @@ repositories {
     jcenter()
 }
 
+
+
 dependencies {
+    compile project(':jndn-node')
     // This dependency is found on compile classpath of this component and consumers.
     compile 'com.google.guava:guava:20.0'
-
     // Use JUnit test framework
     testCompile 'junit:junit:4.12'
-
     compile files("../jndn/target/jndn-0.15.jar")
-
     compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.19.3'
 }
 
