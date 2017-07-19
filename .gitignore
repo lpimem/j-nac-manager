@@ -1,0 +1,7 @@
+build
+target
+.gradle
+.idea
+./**/*.class
+test*.db
+classes
