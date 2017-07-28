@@ -17,7 +17,7 @@ public abstract class Utils {
   public static String nowIsoString() {
     TimeZone tz = TimeZone.getTimeZone("UTC");
 //    DateFormat df = SimpleDateFormat.getDateTimeInstance();
-    DateFormat df = new SimpleDateFormat("yyyyMMdd'T'HHmmss"); // Quoted "Z" to indicate UTC, no timezone offset
+    DateFormat df = new SimpleDateFormat("yyyyMMdd'T'HHmmssZ"); // Quoted "Z" to indicate UTC, no timezone offset
     df.setTimeZone(tz);
     String nowAsISO = df.format(new Date());
     return nowAsISO;

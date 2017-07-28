@@ -63,8 +63,17 @@ public class ManagerApp {
 				throw new RuntimeException(e);
 			}
 			try {
-				List keys = manager.getGroupKey(timeslot);
+				List keys = manager.getGroupKey(timeslot, false);
+				if (keys.size() == 0){
+					Global.LOGGER.info(
+						String.format("Cannot get group keys for [%s] - %f: No schedule found.",
+						dataType.toUri(), timeslot));
+					node.nack(interest.getName());
+					return ;
+				}
 				Data ekey = (Data) keys.get(0);
+				Global.LOGGER.info(String.format(
+					"new E-Key: %s", ekey.getName().toUri()));
 				for (int i = 1; i < keys.size(); i++) {
 					Data dkey = (Data) keys.get(i);
 					System.out.println(String.format("new d-key: %s", dkey.getName().toUri()));
@@ -89,7 +98,8 @@ public class ManagerApp {
 					return;
 				}
 			}
-			System.err.println(String.format("Cannot find D-KEY for %s [at] %s", entity.toUri(), timestamp));
+			System.err.println(
+				String.format("Cannot find D-KEY for %s [at] %s", entity.toUri(), timestamp));
 		}
 
 		private Name[] parseUri(Name interestName) {
@@ -242,6 +252,10 @@ public class ManagerApp {
 			}
 			int startH = Integer.valueOf(startHour);
 			int endH = Integer.valueOf(endHour);
+
+			Global.LOGGER.info(
+				String.format("dogrant args: [%s] %.2f - %.2f, %d - %d",
+					datatype, startD, endD, startH, endH));
 			if (!scheduleStore.containsKey(datatype)) {
 				Schedule s = new Schedule();
 				RepetitiveInterval interval =
@@ -285,14 +299,15 @@ public class ManagerApp {
 				return;
 			}
 			String startDate = "20170703T000000Z";
-			String endDate = "20170730T000000Z";
+			String endDate = "20200730T000000Z";
 			String startHour = "00";
-			String endHour = "23";
+			String endHour = "24";
 			if (dogrant(identity, dataType, startDate, startHour, endDate, endHour)) {
 				Data resp = new Data();
 				resp.setName(interest.getName());
 				node.putData(resp);
 			} else {
+				Global.LOGGER.warning("Grant failed for " + identity);
 				node.nack(interest.getName());
 			}
 		}
